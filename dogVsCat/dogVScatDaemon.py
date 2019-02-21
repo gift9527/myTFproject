@@ -142,7 +142,7 @@ def train_data():
     batch_num = total_sample('dogVScat.tfrecord') / batch_size
     print("batch_num:{}".format(batch_num))
 
-    filename_queue = tf.train.string_input_producer(['dogVScat.tfrecord'], shuffle=False)
+    filename_queue = tf.train.string_input_producer(['dogVScat.tfrecord'], shuffle=True)
     image, label = read_and_decode_dogVScat(filename_queue)
     image_train, label_train = tf.train.batch([image, label], batch_size=batch_size, num_threads=1, capacity=32)
     # image_train, label_train = tf.train.shuffle_batch([image, label], batch_size, num_threads=1, capacity=5+batch_size*3, min_after_dequeue=5)
@@ -197,12 +197,30 @@ def train_data():
     coord.join(threads)
     session.close()
 
-    plt.title('train loss')
-    plt.plot(range(0, 100), loss_list, 'b-')
-    plt.show()
-    plt.title('accuracy')
-    plt.plot(range(0, 100), acc_list, 'r--')
-    plt.show()
+    # try:
+    #     step1 = 0
+    #     print (step1)
+    #     while not coord.should_stop():
+    #             image_batch, label_batch = session.run([image_train, train_labels_one_hot])
+    #             _, step, acc, cost = session.run([optimizer, global_step, train_accuracy, loss],
+    #                                              feed_dict={x_data: image_batch, y_target: label_batch})
+    #     step1 += 1
+    #     if step1 % 100 == 0:
+    #         saver.save(session, 'model.ckpt', global_step=step1)
+    #         print ("step:{},loss:{}".format(step1,cost))
+    # except tf.errors.OutOfRangeError:
+    #     print('Done training --epoch limit reached')
+    # finally:
+    #     coord.request_stop()
+    # coord.join(threads)
+    # session.close()
+
+    # plt.title('train loss')
+    # plt.plot(range(0, 100), loss_list, 'b-')
+    # plt.show()
+    # plt.title('accuracy')
+    # plt.plot(range(0, 100), acc_list, 'r--')
+    # plt.show()
 
 
 def main():
@@ -237,5 +255,5 @@ def forcast_one_image(image_path,model_path):
 
 
 if __name__ == '__main__':
-    main()
-    #forcast_one_image('/home/taoming/data/dogAndCat2/test/cat.12100.jpg','/home/taoming/PycharmProjects/myTFproject/dogVsCat')
+    # main()
+    forcast_one_image('/home/taoming/data/dogAndCat2/test/dog.12100.jpg','/home/taoming/PycharmProjects/myTFproject/dogVsCat')
