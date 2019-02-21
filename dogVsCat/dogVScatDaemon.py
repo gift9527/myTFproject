@@ -4,7 +4,7 @@ import numpy as np
 from PIL import Image
 import matplotlib
 
-matplotlib.use('TkAgg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
@@ -155,7 +155,8 @@ def train_data():
                                   dtype=tf.int32)
 
     model_output = conv_net(x_data)
-    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=y_target, logits=model_output))
+    #loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=y_target, logits=model_output))
+    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_target, logits=model_output))
     optimizer = tf.train.AdamOptimizer(10e-5).minimize(loss, global_step=global_step)
 
     train_correct_prediction = tf.equal(tf.argmax(model_output, 1), tf.argmax(y_target, 1))
@@ -188,7 +189,7 @@ def train_data():
             print("step %d, training accuracy %0.10f loss %0.10f" % (i, acc_avg, cost_avg))
             loss_list.append(cost_avg)
             acc_list.append(acc_avg)
-            saver.save(session, '/Users/closer/PycharmProjects/dogAndCat/model.ckpt', global_step=i)
+            saver.save(session, 'model.ckpt', global_step=i)
     except tf.errors.OutOfRangeError:
         print('Done training --epoch limit reached')
     finally:
@@ -210,8 +211,10 @@ def main():
     # print (total_sample('cat_vs_dog.tfrecord'))
 
 
-def test_one_image(image_path,model_path):
+def forcast_one_image(image_path,model_path):
     image = Image.open(image_path)
+    image = image.resize([180,180])
+    image = np.array(image)
     image = tf.cast(image, tf.float32)
     image = tf.reshape(image, [-1, 180, 180, 3])
     test_result = conv_net(image)
@@ -225,12 +228,14 @@ def test_one_image(image_path,model_path):
             print('no checkpoint file')
             return
 
-    result = sess.run(test_result)
-    result_label = np.argmax(result[0])
-    print ("result:" + str(result_label))
+        result = sess.run(test_result)
+        print(result)
+        result_label = np.argmax(result[0])
+        print ("result:" + str(result_label))
 
 
 
 
 if __name__ == '__main__':
     main()
+    #forcast_one_image('/home/taoming/data/dogAndCat2/test/cat.12100.jpg','/home/taoming/PycharmProjects/myTFproject/dogVsCat')
