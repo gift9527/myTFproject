@@ -155,7 +155,7 @@ def train_data():
                                   dtype=tf.int32)
 
     model_output = conv_net(x_data)
-    #loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=y_target, logits=model_output))
+    # loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=y_target, logits=model_output))
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_target, logits=model_output))
     optimizer = tf.train.AdamOptimizer(10e-5).minimize(loss, global_step=global_step)
 
@@ -178,7 +178,7 @@ def train_data():
             acc_avg = 0
             print("xxxx:" + str(i))
             for j in range(int(batch_num)):
-                print (1)
+                print(1)
                 image_batch, label_batch = session.run([image_train, train_labels_one_hot])
                 _, step, acc, cost = session.run([optimizer, global_step, train_accuracy, loss],
                                                  feed_dict={x_data: image_batch, y_target: label_batch})
@@ -211,9 +211,9 @@ def main():
     # print (total_sample('cat_vs_dog.tfrecord'))
 
 
-def forcast_one_image(image_path,model_path):
+def forcast_one_image(image_path, model_path):
     image = Image.open(image_path)
-    image = image.resize([180,180])
+    image = image.resize([180, 180])
     image = np.array(image)
     image = tf.cast(image, tf.float32)
     image = tf.reshape(image, [-1, 180, 180, 3])
@@ -223,7 +223,7 @@ def forcast_one_image(image_path,model_path):
     with tf.Session() as sess:
         ckpt = tf.train.get_checkpoint_state(model_path)
         if ckpt and ckpt.model_checkpoint_path:
-            saver.restore(sess,ckpt.model_checkpoint_path)
+            saver.restore(sess, ckpt.model_checkpoint_path)
         else:
             print('no checkpoint file')
             return
@@ -231,11 +231,51 @@ def forcast_one_image(image_path,model_path):
         result = sess.run(test_result)
         print(result)
         result_label = np.argmax(result[0])
-        print ("result:" + str(result_label))
+        print("result:" + str(result_label))
 
 
+def forcast_dir_image(dir, model_path):
+    right = 0
+    error = 0
+    saver = tf.train.Saver()
+    with tf.Session() as sess:
+        ckpt = tf.train.get_checkpoint_state(model_path)
+        if ckpt and ckpt.model_checkpoint_path:
+            saver.restore(sess, ckpt.model_checkpoint_path)
+        else:
+            print('no checkpoint file')
+            return
+
+        for file in os.listdir(dir):
+            if not file.endswith('jpg'):
+                continue
+            label = None
+            if file.startswith("dog"):
+                label = 1
+            else:
+                label = 0
+
+            file_path = dir + file
+
+            image = Image.open(file_path)
+            image = image.resize([180, 180])
+            image = np.array(image)
+            image = tf.cast(image, tf.float32)
+            image = tf.reshape(image, [-1, 180, 180, 3])
+            test_result = conv_net(image)
+
+            result = sess.run(test_result)
+            result_label = np.argmax(result[0])
+
+            if result_label == label:
+                right += 1
+            else:
+                error += 1
+
+        print ("right:{}".format(right))
+        print ("error:{}".format(error))
 
 
 if __name__ == '__main__':
     main()
-    #forcast_one_image('/home/taoming/data/dogAndCat2/test/cat.12100.jpg','/home/taoming/PycharmProjects/myTFproject/dogVsCat')
+    # forcast_one_image('/home/taoming/data/dogAndCat2/test/cat.12100.jpg','/home/taoming/PycharmProjects/myTFproject/dogVsCat')
