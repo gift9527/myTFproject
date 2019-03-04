@@ -13,18 +13,6 @@ Class_Nums = 2  # 共有 2 个种类
 Sample_Nums = 10  # 每类取 10 个样本,共 50 个样本
 
 
-# def load_images():
-#     img_list = []
-#     for i in range(Class_Nums):
-#         path = 'F:\Python WorkSpace\FaceRecognize\\train\%d\\' % (i + 1)
-#         for j in range(Sample_Nums):
-#             file_name = '%03d.jpg' % (j + 1)
-#             file = path + file_name
-#             image = cv2.imread(file, cv2.IMREAD_GRAYSCALE)
-#             img_list.append(image)
-#
-#     return img_list
-
 
 def get_accuracy(logits, targets):
     batch_prediction = np.argmax(logits, axis=1)
@@ -198,30 +186,6 @@ def train_data():
     coord.join(threads)
     session.close()
 
-    # try:
-    #     step1 = 0
-    #     print (step1)
-    #     while not coord.should_stop():
-    #             image_batch, label_batch = session.run([image_train, train_labels_one_hot])
-    #             _, step, acc, cost = session.run([optimizer, global_step, train_accuracy, loss],
-    #                                              feed_dict={x_data: image_batch, y_target: label_batch})
-    #     step1 += 1
-    #     if step1 % 100 == 0:
-    #         saver.save(session, 'model.ckpt', global_step=step1)
-    #         print ("step:{},loss:{}".format(step1,cost))
-    # except tf.errors.OutOfRangeError:
-    #     print('Done training --epoch limit reached')
-    # finally:
-    #     coord.request_stop()
-    # coord.join(threads)
-    # session.close()
-
-    # plt.title('train loss')
-    # plt.plot(range(0, 100), loss_list, 'b-')
-    # plt.show()
-    # plt.title('accuracy')
-    # plt.plot(range(0, 100), acc_list, 'r--')
-    # plt.show()
 
 def main():
     # gen_dogVScat_tfrecords('cat_vs_dog.tfrecord')
@@ -235,6 +199,7 @@ def forcast_one_image(image_path, model_path):
     image = np.array(image)
     image = tf.cast(image, tf.float32)
     image = tf.reshape(image, [-1, 180, 180, 3])
+    image = tf.cast(image,tf.float32)* (1. / 255) - 0.5
     test_result = conv_net(image)
     saver = tf.train.Saver()
 
@@ -252,9 +217,37 @@ def forcast_one_image(image_path, model_path):
         print("result:" + str(result_label))
 
 
-def forcast_dir_image(dir, model_path):
+def load_image_forcast(image_path):
+    image = Image.open(image_path)
+    image = image.resize([180, 180])
+    image = np.array(image)
+    image = tf.cast(image, tf.float32)
+    image = tf.reshape(image, [-1, 180, 180, 3])
+    image = tf.cast(image,tf.float32)* (1. / 255) - 0.5
+    return image
+
+
+
+def forcast_dir_images(dir,model_path):
+    label_list = []
+    image_list = []
     right = 0
     error = 0
+    for file in os.listdir(dir):
+        if not file.endswith('jpg'):
+            continue
+        label = None
+        if file.startswith("dog"):
+            label = 1
+        else:
+            label = 0
+        label_list.append(label)
+        file_path = dir + file
+        image = load_image_forcast(file_path)
+        image_list.append(image)
+    n = len(image_list)
+    image_batch = tf.concat(image_list,axis=0)
+    test_result = conv_net(image_batch)
     saver = tf.train.Saver()
     with tf.Session() as sess:
         ckpt = tf.train.get_checkpoint_state(model_path)
@@ -264,37 +257,20 @@ def forcast_dir_image(dir, model_path):
             print('no checkpoint file')
             return
 
-        for file in os.listdir(dir):
-            if not file.endswith('jpg'):
-                continue
-            label = None
-            if file.startswith("dog"):
-                label = 1
-            else:
-                label = 0
-
-            file_path = dir + file
-
-            image = Image.open(file_path)
-            image = image.resize([180, 180])
-            image = np.array(image)
-            image = tf.cast(image, tf.float32)
-            image = tf.reshape(image, [-1, 180, 180, 3])
-            test_result = conv_net(image)
-
-            result = sess.run(test_result)
-            result_label = np.argmax(result[0])
-
-            if result_label == label:
-                right += 1
+        #result = sess.run(test_result,feed_dict={x_data:image_batch})
+        result = sess.run(test_result)
+        for i in range(len(label_list)):
+            result_i = np.argmax(result[i])
+            if result_i == label_list[i]:
+                right +=1
             else:
                 error += 1
-
-        print ("right:{}".format(right))
-        print ("error:{}".format(error))
+    print ("right:{}".format(right))
+    print ("error:{}".format(error))
 
 
 if __name__ == '__main__':
     # main()
-    forcast_one_image('/home/taoming/data/dogAndCat2/test/cat.12100.jpg','/home/taoming/PycharmProjects/myTFproject/dogVsCat')
+    #forcast_one_image('/home/taoming/data/dogAndCat2/train/cat.1000.jpg','/home/taoming/PycharmProjects/myTFproject/dogVsCat')
     #forcast_dir_image('/home/taoming/data/dogAndCat2/test/','/home/taoming/PycharmProjects/myTFproject/dogVsCat')
+    forcast_dir_images('/home/taoming/data/dogAndCat2/test2/','/home/taoming/PycharmProjects/myTFproject/dogVsCat')
