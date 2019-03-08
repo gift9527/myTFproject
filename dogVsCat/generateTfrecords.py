@@ -81,7 +81,7 @@ def total_sample(file_name):
 # 读取数据还原数据
 def restore_image_from_tfrecords(tfrecord_path):
     total_sample_num = total_sample(tfrecord_path)
-    filename_queue = tf.train.string_input_producer([tfrecord_path], shuffle=False)
+    filename_queue = tf.train.string_input_producer([tfrecord_path], shuffle=True)
     image, label = read_and_decode_dogVScat_change(filename_queue)
     with tf.Session() as sess:
         init_op = tf.initialize_all_variables()

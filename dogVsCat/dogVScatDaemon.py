@@ -236,7 +236,6 @@ def forcast_dir_images(dir,model_path):
     for file in os.listdir(dir):
         if not file.endswith('jpg'):
             continue
-        label = None
         if file.startswith("dog"):
             label = 1
         else:
