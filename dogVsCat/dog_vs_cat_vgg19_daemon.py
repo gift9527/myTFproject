@@ -21,7 +21,7 @@ def total_sample(file_name):
 # 生成tfrecords文件
 def gen_dogVScat_VGG19_tfrecords(path):
     tf_writer = tf.python_io.TFRecordWriter(path)
-    for file in os.listdir("/Users/taoming/data/dogVScat/kaggle/train/"):
+    for file in os.listdir("/home/taoming/data/dogAndCat2/train/"):
         if not file.endswith('jpg'):
             continue
 
@@ -30,7 +30,7 @@ def gen_dogVScat_VGG19_tfrecords(path):
         else:
             label = 0
 
-        file_path = "/Users/taoming/data/dogVScat/kaggle/train/" + file
+        file_path = "/home/taoming/data/dogAndCat2/train/" + file
         img = Image.open(file_path)
         img = img.resize((224, 224))
         img_raw = img.tobytes()
@@ -81,7 +81,7 @@ def train_data(image_record_path):
 
     train_mode = tf.placeholder(tf.bool)
 
-    vgg = vgg19_train.Vgg19('/Users/taoming/data/vgg19.npy')
+    vgg = vgg19_train('/home/taoming/data/vgg19.npy')
     vgg.build(x_data, train_mode)
 
     loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_target, logits=vgg.prob))
@@ -111,7 +111,7 @@ def train_data(image_record_path):
                 print(1)
                 image_batch, label_batch = session.run([image_train, train_labels_one_hot])
                 _, step, acc, cost = session.run([optimizer, global_step, train_accuracy, loss],
-                                                 feed_dict={x_data: image_batch, y_target: label_batch})
+                                                 feed_dict={x_data: image_batch, y_target: label_batch,train_mode:True})
                 acc_avg += (acc / batch_num)
                 cost_avg += (cost / batch_num)
                 print("acc_avg:{}".format(acc_avg))
@@ -172,7 +172,8 @@ def forcast_dirs_image(dir,model_path):
 
 
 if __name__ == "__main__":
-    train_data("cat_vs_dog.tfrecord")
+    #gen_dogVScat_VGG19_tfrecords('cat_vs_dog_vgg19.tfrecord')
+    train_data("cat_vs_dog_vgg19.tfrecord")
     #forcast_dirs_image('/home/taoming/data/dogAndCat2/test2/','./final.npy')
 
 
