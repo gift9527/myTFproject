@@ -106,21 +106,21 @@ def train_data(image_record_path):
         for i in range(100):
             cost_avg = 0
             acc_avg = 0
-            print("xxxx:" + str(i))
+            #print("xxxx:" + str(i))
             for j in range(int(batch_num)):
-                print(1)
+                #print(1)
                 image_batch, label_batch = session.run([image_train, train_labels_one_hot])
                 _, step, acc, cost = session.run([optimizer, global_step, train_accuracy, loss],
                                                  feed_dict={x_data: image_batch, y_target: label_batch,train_mode:True})
                 acc_avg += (acc / batch_num)
                 cost_avg += (cost / batch_num)
-                print("acc_avg:{}".format(acc_avg))
-                print("cost_avg:{}".format(cost_avg))
+                #print("acc_avg:{}".format(acc_avg))
+                #print("cost_avg:{}".format(cost_avg))
             print("step %d, training accuracy %0.10f loss %0.10f" % (i, acc_avg, cost_avg))
             loss_list.append(cost_avg)
             acc_list.append(acc_avg)
             #saver.save(session, 'model.ckpt', global_step=i)
-        vgg.save_npy(session, './final.npy')
+            vgg.save_npy(session, './final.npy')
     except tf.errors.OutOfRangeError:
         print('Done training --epoch limit reached')
     finally:

@@ -20,6 +20,7 @@ class Vgg19:
         self.var_dict = {}
         self.trainable = trainable
         self.dropout = dropout
+        self.start = True
 
     def build(self, rgb, train_mode=None):
         """
@@ -84,7 +85,11 @@ class Vgg19:
             self.relu7 = tf.nn.dropout(self.relu7, self.dropout)
 
         #self.fc8 = self.fc_layer(self.relu7, 4096, Class_Nums, "fc8")
-        self.fc8 = self.fc_8_layer(self.relu7, 4096, Class_Nums, "fc8")
+        if self.start:
+            self.start = False
+            self.fc8 = self.fc_8_layer(self.relu7, 4096, Class_Nums, "fc8")
+        else:
+            self.fc8 = self.fc_layer(self.relu7, 4096, Class_Nums, "fc8")
         self.prob = tf.nn.softmax(self.fc8, name="prob")
 
         self.data_dict = None
