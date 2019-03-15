@@ -136,7 +136,7 @@ def train_data():
     image_train, label_train = tf.train.batch([image, label], batch_size=batch_size, num_threads=1, capacity=32)
     # image_train, label_train = tf.train.shuffle_batch([image, label], batch_size, num_threads=1, capacity=5+batch_size*3, min_after_dequeue=5)
     # tf.one_hot 独热函数
-    train_labels_one_hot = tf.one_hot(label_train, 2, on_value=1.0, off_value=0.0)
+    train_labels_one_hot = tf.one_hot(label_train, Class_Nums, on_value=1.0, off_value=0.0)
     x_data = tf.placeholder(tf.float32, shape=[None, 180, 180, 3])
     y_target = tf.placeholder(tf.float32, shape=[None, Class_Nums])
 

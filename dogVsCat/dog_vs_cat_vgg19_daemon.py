@@ -21,7 +21,7 @@ def total_sample(file_name):
 # 生成tfrecords文件
 def gen_dogVScat_VGG19_tfrecords(path):
     tf_writer = tf.python_io.TFRecordWriter(path)
-    for file in os.listdir("/home/taoming/data/dogAndCat2/train/"):
+    for file in os.listdir("/Users/taoming/data/dogVScat/kaggle/train/"):
         if not file.endswith('jpg'):
             continue
 
@@ -30,7 +30,7 @@ def gen_dogVScat_VGG19_tfrecords(path):
         else:
             label = 0
 
-        file_path = "/home/taoming/data/dogAndCat2/train/" + file
+        file_path = "/Users/taoming/data/dogVScat/kaggle/train/" + file
         img = Image.open(file_path)
         img = img.resize((224, 224))
         img_raw = img.tobytes()
@@ -60,6 +60,26 @@ def read_and_decode_dogVScat_VGG19(filename_queue):
 
     return img, label
 
+def read_and_decode_dogVScat_VGG19_change(filename_queue):
+    reader = tf.TFRecordReader()
+    _, serialized_example = reader.read(filename_queue)
+    features = tf.parse_single_example(
+        serialized_example,
+        features={
+            'img_data': tf.FixedLenFeature([], tf.string),
+            'label': tf.FixedLenFeature([], tf.int64)
+        }
+    )
+    img = tf.decode_raw(features['img_data'], tf.uint8)
+    img = tf.reshape(img, [224, 224, 3])
+    #img = tf.cast(img, tf.float32) * (1. / 255) - 0.5
+    #此处由于是图片还原，所以不需要归一化处理
+    #也不应该有下句，处理成tensor张量就无法处理了
+    #img = tf.cast(img, tf.float32)
+    label = tf.cast(features['label'], tf.int32)
+
+    return img, label
+
 
 def train_data(image_record_path):
     batch_num = total_sample(image_record_path) / BATCH_SIZE
@@ -72,11 +92,11 @@ def train_data(image_record_path):
     image_train, label_train = tf.train.shuffle_batch([image, label], BATCH_SIZE, num_threads=1,
                                                       capacity=5 + BATCH_SIZE * 3, min_after_dequeue=5)
 
-    train_labels_one_hot = tf.one_hot(label_train, 2, on_value=1.0, off_value=0.0)
+    train_labels_one_hot = tf.one_hot(label_train, Class_Nums, on_value=1.0, off_value=0.0)
     x_data = tf.placeholder(tf.float32, shape=[None, 224, 224, 3])
     y_target = tf.placeholder(tf.float32, shape=[None, Class_Nums])
 
-    global_step = tf.get_variable('global_step', [], initializer=tf.constant_initializer(0), trainable=True,
+    global_step = tf.get_variable('global_step', [], initializer=tf.constant_initializer(0), trainable=False,
                                   dtype=tf.int32)
 
     train_mode = tf.placeholder(tf.bool)
@@ -110,6 +130,7 @@ def train_data(image_record_path):
             for j in range(int(batch_num)):
                 #print(1)
                 image_batch, label_batch = session.run([image_train, train_labels_one_hot])
+                print (label_batch)
                 _, step, acc, cost = session.run([optimizer, global_step, train_accuracy, loss],
                                                  feed_dict={x_data: image_batch, y_target: label_batch,train_mode:True})
                 acc_avg += (acc / batch_num)
@@ -170,9 +191,26 @@ def forcast_dirs_image(dir,model_path):
     print("error:{}".format(error))
 
 
+# 读取数据还原数据
+def restore_image_from_tfrecords(tfrecord_path):
+    total_sample_num = total_sample(tfrecord_path)
+    filename_queue = tf.train.string_input_producer([tfrecord_path], shuffle=True)
+    image, label = read_and_decode_dogVScat_VGG19_change(filename_queue)
+    with tf.Session() as sess:
+        init_op = tf.initialize_all_variables()
+        sess.run(init_op)
+        coord = tf.train.Coordinator()
+        threads = tf.train.start_queue_runners(coord=coord)
+        for i in range(100):
+            image_run, label_run = sess.run([image, label])
+            img = Image.fromarray(image_run,"RGB")
+            img.save("/Users/taoming/data/dogVScat/kaggle/restore/" + str(i) + '_''Label_' + str(label_run) + '.jpg')
+        coord.request_stop()
+        coord.join(threads)
 
 if __name__ == "__main__":
     #gen_dogVScat_VGG19_tfrecords('cat_vs_dog_vgg19.tfrecord')
+    #restore_image_from_tfrecords('cat_vs_dog_vgg19.tfrecord')
     train_data("cat_vs_dog_vgg19.tfrecord")
     #forcast_dirs_image('/home/taoming/data/dogAndCat2/test2/','./final.npy')
 
