@@ -182,7 +182,7 @@ def forcast_dirs_image(dir,model_path):
         image_list.append(image)
     n = len(image_list)
     image_batch = tf.concat(image_list,axis=0)
-    vgg = vgg19_forcast.Vgg19(model_path)
+    vgg = vgg19_forcast(model_path)
     vgg.build(image_batch)
     with tf.Session() as sess:
         result = sess.run(vgg.prob)
@@ -216,7 +216,7 @@ def restore_image_from_tfrecords(tfrecord_path):
 if __name__ == "__main__":
     #gen_dogVScat_VGG19_tfrecords('cat_vs_dog_vgg19.tfrecord')
     #restore_image_from_tfrecords('cat_vs_dog_vgg19.tfrecord')
-    train_data("cat_vs_dog_vgg19.tfrecord")
-    #forcast_dirs_image('/home/taoming/data/dogAndCat2/test2/','./final.npy')
+    #train_data("cat_vs_dog_vgg19.tfrecord")
+    forcast_dirs_image('/home/taoming/data/dogAndCat2/test3/','./final2.npy')
 
 
