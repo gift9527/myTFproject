@@ -220,12 +220,12 @@ def forcast_dirs_image_for_accuracy(dir, model_path):
         image = load_image_forcast(file_path)
         image_list.append(image)
     n = len(image_list)
-    x_data = tf.placeholder(tf.float32, shape=[None, 224, 224, 3])
     vgg = vgg19_forcast(model_path)
-    vgg.build(x_data)
+    #vgg.build(x_data)
     with tf.Session() as sess:
         for i in range(len(label_list)):
-            result = sess.run(vgg.prob, feed_dict={x_data: image_list[i]})
+            vgg.build(image_list[i])
+            result = sess.run(vgg.prob)
             print(result)
             print(result[0])
             result_i = np.argmax(result[0])
