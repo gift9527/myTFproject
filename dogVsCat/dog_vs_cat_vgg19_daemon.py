@@ -21,7 +21,7 @@ def total_sample(file_name):
 # 生成tfrecords文件
 def gen_dogVScat_VGG19_tfrecords(path):
     tf_writer = tf.python_io.TFRecordWriter(path)
-    for file in os.listdir("/Users/taoming/data/dogVScat/kaggle/train/"):
+    for file in os.listdir("/home/taoming/data/dogAndCat2/train/"):
         if not file.endswith('jpg'):
             continue
 
@@ -30,7 +30,7 @@ def gen_dogVScat_VGG19_tfrecords(path):
         else:
             label = 0
 
-        file_path = "/Users/taoming/data/dogVScat/kaggle/train/" + file
+        file_path = "/home/taoming/data/dogAndCat2/train/" + file
         img = Image.open(file_path)
         img = img.resize((224, 224))
         img_raw = img.tobytes()
@@ -104,8 +104,10 @@ def train_data(image_record_path):
     vgg = vgg19_train('/home/taoming/data/vgg19.npy')
     vgg.build(x_data, train_mode)
 
-    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_target, logits=vgg.prob))
-    optimizer = tf.train.AdamOptimizer(10e-5).minimize(loss, global_step=global_step)
+    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_target, logits=vgg.fc8))
+    #loss = -tf.reduce_mean(y_target*tf.log(vgg.prob))
+    #optimizer = tf.train.AdamOptimizer(10e-5).minimize(loss, global_step=global_step)
+    optimizer = tf.train.GradientDescentOptimizer(0.0001).minimize(loss, global_step=global_step)
 
     train_correct_prediction = tf.equal(tf.argmax(vgg.prob, 1), tf.argmax(y_target, 1))
 
@@ -123,25 +125,28 @@ def train_data(image_record_path):
     acc_list = []
 
     try:
-        for i in range(100):
+        for i in range(10):
             cost_avg = 0
             acc_avg = 0
             #print("xxxx:" + str(i))
             for j in range(int(batch_num)):
-                #print(1)
+                #print(j)
                 image_batch, label_batch = session.run([image_train, train_labels_one_hot])
-                print (label_batch)
-                _, step, acc, cost = session.run([optimizer, global_step, train_accuracy, loss],
+                #print (label_batch)
+                _, step, acc, cost ,prob = session.run([optimizer, global_step, train_accuracy, loss, vgg.prob],
                                                  feed_dict={x_data: image_batch, y_target: label_batch,train_mode:True})
+                #print(prob)
                 acc_avg += (acc / batch_num)
                 cost_avg += (cost / batch_num)
+                #print("acc_avg:{}".format(acc_avg))
+                #print("cost:{}".format(cost))
                 #print("acc_avg:{}".format(acc_avg))
                 #print("cost_avg:{}".format(cost_avg))
             print("step %d, training accuracy %0.10f loss %0.10f" % (i, acc_avg, cost_avg))
             loss_list.append(cost_avg)
             acc_list.append(acc_avg)
             #saver.save(session, 'model.ckpt', global_step=i)
-            vgg.save_npy(session, './final.npy')
+            vgg.save_npy(session, './final2.npy')
     except tf.errors.OutOfRangeError:
         print('Done training --epoch limit reached')
     finally:
@@ -204,7 +209,7 @@ def restore_image_from_tfrecords(tfrecord_path):
         for i in range(100):
             image_run, label_run = sess.run([image, label])
             img = Image.fromarray(image_run,"RGB")
-            img.save("/Users/taoming/data/dogVScat/kaggle/restore/" + str(i) + '_''Label_' + str(label_run) + '.jpg')
+            img.save("/home/taoming/data/dogAndCat2/restore/" + str(i) + '_''Label_' + str(label_run) + '.jpg')
         coord.request_stop()
         coord.join(threads)
 
