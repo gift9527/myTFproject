@@ -221,7 +221,6 @@ def forcast_dirs_image_for_accuracy(dir, model_path):
         image_list.append(image)
     n = len(image_list)
     vgg = vgg19_forcast(model_path)
-    #vgg.build(x_data)
     with tf.Session() as sess:
         for i in range(len(label_list)):
             vgg.build(image_list[i])
@@ -231,8 +230,10 @@ def forcast_dirs_image_for_accuracy(dir, model_path):
             result_i = np.argmax(result[0])
             if result_i == label_list[i]:
                 right += 1
+                print ("right")
             else:
                 error += 1
+                print ("error")
         print("right:{}".format(right))
         print("error:{}".format(error))
 

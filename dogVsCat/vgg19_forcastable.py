@@ -80,7 +80,7 @@ class Vgg19:
 
         self.prob = tf.nn.softmax(self.fc8, name="prob")
 
-        self.data_dict = None
+        #self.data_dict = None
         print(("build model finished: %ds" % (time.time() - start_time)))
 
     def avg_pool(self, bottom, name):
