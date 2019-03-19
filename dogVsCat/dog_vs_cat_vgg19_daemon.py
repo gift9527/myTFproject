@@ -22,7 +22,7 @@ def total_sample(file_name):
 # 生成tfrecords文件
 def gen_dogVScat_VGG19_tfrecords(path):
     tf_writer = tf.python_io.TFRecordWriter(path)
-    for file in os.listdir("/home/taoming/data/dogAndCat2/train/"):
+    for file in os.listdir("/home/taoming/data/dogAndCat2/test/"):
         if not file.endswith('jpg'):
             continue
 
@@ -31,7 +31,7 @@ def gen_dogVScat_VGG19_tfrecords(path):
         else:
             label = 0
 
-        file_path = "/home/taoming/data/dogAndCat2/train/" + file
+        file_path = "/home/taoming/data/dogAndCat2/test/" + file
         img = Image.open(file_path)
         img = img.resize((224, 224))
         img_raw = img.tobytes()
@@ -258,7 +258,8 @@ def restore_image_from_tfrecords(tfrecord_path):
 
 if __name__ == "__main__":
     # gen_dogVScat_VGG19_tfrecords('cat_vs_dog_vgg19.tfrecord')
+    gen_dogVScat_VGG19_tfrecords('cat_vs_dog_vgg19_test.tfrecord')
     # restore_image_from_tfrecords('cat_vs_dog_vgg19.tfrecord')
     # train_data("cat_vs_dog_vgg19.tfrecord")
     #forcast_dirs_image('/home/taoming/data/dogAndCat2/test3/', './final2.npy')
-    forcast_dirs_image_for_accuracy('/home/taoming/data/dogAndCat2/test3/', './final2.npy')
+    #forcast_dirs_image_for_accuracy('/home/taoming/data/dogAndCat2/test3/', './final2.npy')
