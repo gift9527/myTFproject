@@ -158,6 +158,66 @@ def train_data(image_record_path):
     coord.join(threads)
     session.close()
 
+def test_data(image_record_path,model_path):
+    batch_num = total_sample(image_record_path) / BATCH_SIZE
+    print("batch_num:{}".format(batch_num))
+    filename_queue = tf.train.string_input_producer([image_record_path], shuffle=True)
+
+    image, label = read_and_decode_dogVScat_VGG19(filename_queue)
+    image_train, label_train = tf.train.shuffle_batch([image, label], BATCH_SIZE, num_threads=1,
+                                                      capacity=5 + BATCH_SIZE * 3, min_after_dequeue=5)
+
+    train_labels_one_hot = tf.one_hot(label_train, Class_Nums, on_value=1.0, off_value=0.0)
+    x_data = tf.placeholder(tf.float32, shape=[None, 224, 224, 3])
+    y_target = tf.placeholder(tf.float32, shape=[None, Class_Nums])
+
+    global_step = tf.get_variable('global_step', [], initializer=tf.constant_initializer(0), trainable=False,
+                                  dtype=tf.int32)
+
+    vgg = vgg19_forcast(model_path)
+    vgg.build(x_data)
+    loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_target, logits=vgg.fc8))
+    test_correct_prediction = tf.equal(tf.argmax(vgg.prob, 1), tf.argmax(y_target, 1))
+    test_accuracy = tf.reduce_mean(tf.cast(test_correct_prediction, tf.float32))
+
+    init = tf.global_variables_initializer()
+    saver = tf.train.Saver()
+    session = tf.Session()
+    session.run(init)
+
+    coord = tf.train.Coordinator()
+    threads = tf.train.start_queue_runners(sess=session, coord=coord)
+
+    loss_list = []
+    acc_list = []
+
+
+    try:
+        for i in range(1):
+            cost_avg = 0
+            acc_avg = 0
+            for j in range(int(batch_num)):
+                image_batch, label_batch = session.run([image_train, train_labels_one_hot])
+                step, acc, cost = session.run([global_step, test_accuracy, loss],
+                                                       feed_dict={x_data: image_batch, y_target: label_batch})
+                acc_avg += (acc / batch_num)
+                cost_avg += (cost / batch_num)
+                # print("acc_avg:{}".format(acc_avg))
+                # print("cost:{}".format(cost))
+                # print("acc_avg:{}".format(acc_avg))
+                # print("cost_avg:{}".format(cost_avg))
+            print("step %d, training accuracy %0.10f loss %0.10f" % (i, acc_avg, cost_avg))
+            loss_list.append(cost_avg)
+            acc_list.append(acc_avg)
+            # saver.save(session, 'model.ckpt', global_step=i)
+            #vgg.save_npy(session, './final2.npy')
+    except tf.errors.OutOfRangeError:
+        print('Done training --epoch limit reached')
+    finally:
+        coord.request_stop()
+    coord.join(threads)
+    session.close()
+
 
 def load_image_forcast(image_path):
     image = Image.open(image_path)
@@ -258,8 +318,9 @@ def restore_image_from_tfrecords(tfrecord_path):
 
 if __name__ == "__main__":
     # gen_dogVScat_VGG19_tfrecords('cat_vs_dog_vgg19.tfrecord')
-    gen_dogVScat_VGG19_tfrecords('cat_vs_dog_vgg19_test.tfrecord')
+    #gen_dogVScat_VGG19_tfrecords('cat_vs_dog_vgg19_test.tfrecord')
     # restore_image_from_tfrecords('cat_vs_dog_vgg19.tfrecord')
     # train_data("cat_vs_dog_vgg19.tfrecord")
     #forcast_dirs_image('/home/taoming/data/dogAndCat2/test3/', './final2.npy')
     #forcast_dirs_image_for_accuracy('/home/taoming/data/dogAndCat2/test3/', './final2.npy')
+    test_data('cat_vs_dog_vgg19_test.tfrecord', './final2.npy')
