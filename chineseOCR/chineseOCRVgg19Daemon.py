@@ -16,6 +16,7 @@ def total_sample(file_name):
     sample_nums = 0
     for record in tf.python_io.tf_record_iterator(file_name):
         sample_nums += 1
+        print (sample_nums)
     return sample_nums
 
 def total_dir_sample(tfrecord_dir):
@@ -32,6 +33,7 @@ def total_dir_sample(tfrecord_dir):
     for tfrecord in tfrecord_path_list:
         for record in tf.python_io.tf_record_iterator(tfrecord):
             sample_nums += 1
+            print (sample_nums)
     return sample_nums
 
 
@@ -73,6 +75,7 @@ def read_and_decode_dogVScat_VGG19(filename_queue):
     )
     img = tf.decode_raw(features['img_data'], tf.uint8)
     img = tf.reshape(img, [224, 224, 3])
+    print(998)
     img = tf.cast(img, tf.float32) * (1. / 255)
     label = tf.cast(features['label'], tf.int32)
 
@@ -101,10 +104,12 @@ def read_and_decode_dogVScat_VGG19_change(filename_queue):
 
 
 def train_data(image_record_dir):
+    print(2)
     batch_num = total_dir_sample(image_record_dir) / BATCH_SIZE
+    print (3)
     print("batch_num:{}".format(batch_num))
 
-    filename_queue = tf.train.string_input_producer(tf.train.match_filenames_once(image_record_dir), shuffle=True)
+    filename_queue = tf.train.string_input_producer(tf.train.match_filenames_once(image_record_dir + '/*.tfrecord'), shuffle=True)
 
     image, label = read_and_decode_dogVScat_VGG19(filename_queue)
 
@@ -130,9 +135,10 @@ def train_data(image_record_dir):
 
     train_accuracy = tf.reduce_mean(tf.cast(train_correct_prediction, tf.float32))
 
-    init = tf.global_variables_initializer()
+    #init = tf.global_variables_initializer()
     session = tf.Session()
-    session.run(init)
+    #session.run(init)
+    session.run([tf.global_variables_initializer(), tf.local_variables_initializer()])
 
     coord = tf.train.Coordinator()
     threads = tf.train.start_queue_runners(sess=session, coord=coord)
@@ -166,7 +172,7 @@ def train_data(image_record_dir):
     coord.join(threads)
     session.close()
 
-def test_data(image_record_dir,model_path):
+def forcast_data(image_record_dir,model_path):
     batch_num = total_dir_sample(image_record_dir) / BATCH_SIZE
     print("batch_num:{}".format(batch_num))
     filename_queue = tf.train.string_input_producer(tf.train.match_filenames_once(image_record_dir), shuffle=True)
@@ -327,7 +333,10 @@ if __name__ == "__main__":
     # gen_dogVScat_VGG19_tfrecords('cat_vs_dog_vgg19.tfrecord')
     #gen_dogVScat_VGG19_tfrecords('cat_vs_dog_vgg19_test.tfrecord')
     # restore_image_from_tfrecords('cat_vs_dog_vgg19.tfrecord')
-    # train_data("cat_vs_dog_vgg19.tfrecord")
+    print(1)
+    #train_data("/home/taoming/data/chineseOCR/trainSampleTfrecords")
+    train_data("/home/taoming/data/chineseOCR/testSampleTfrecords")
     #forcast_dirs_image('/home/taoming/data/dogAndCat2/test3/', './final2.npy')
     #forcast_dirs_image_for_accuracy('/home/taoming/data/dogAndCat2/test3/', './final2.npy')
-    test_data('cat_vs_dog_vgg19_test.tfrecord', './OCRfinal.npy')
+    #test_data('cat_vs_dog_vgg19_test.tfrecord', './OCRfinal.npy')
+

@@ -4,6 +4,7 @@ import shutil
 import math
 from PIL import Image
 import tensorflow as tf
+import numpy as np
 
 
 def read_file_to_list(dir_path):
@@ -43,7 +44,11 @@ def generate_tfrecords(file_path_list, tf_record_image_number,tfrecord_dir):
             label = according_file_path_return_label(file)
             img = Image.open(file)
             img = img.resize((224, 224))
-            img_raw = img.tobytes()
+            img = img.convert('RGB')
+            rgb_array = np.asarray(img)
+            img_rgb = Image.fromarray(rgb_array)
+            img_raw = img_rgb.tobytes()
+            #img_raw = img.tobytes()
 
             example = tf.train.Example()
             feature = example.features.feature

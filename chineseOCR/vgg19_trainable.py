@@ -4,7 +4,7 @@ import numpy as np
 from functools import reduce
 
 VGG_MEAN = [103.939, 116.779, 123.68]
-Class_Nums = 2
+Class_Nums = 6763
 
 class Vgg19:
     """
