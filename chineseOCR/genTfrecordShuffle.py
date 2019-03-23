@@ -22,13 +22,14 @@ def read_file_to_list(dir_path):
 
 
 def according_file_path_return_label(file_path):
+    print(file_path)
     m = file_path.split('/')
-    label = int(m[5])
+    label = int(m[6])
     return label
 
 
 
-def generate_tfrecords(file_path_list, tf_record_image_number):
+def generate_tfrecords(file_path_list, tf_record_image_number,tfrecord_dir):
     tfrecord_number = math.ceil(len(file_path_list) / tf_record_image_number)
     for i in range(tfrecord_number):
         if i == (tfrecord_number - 1):
@@ -36,7 +37,7 @@ def generate_tfrecords(file_path_list, tf_record_image_number):
         else:
             tf_record_image_list = file_path_list[i*tf_record_image_number:(i + 1)* tf_record_image_number]
 
-        tfrecord_path = 'chineseOCR_train_vgg19_{}.tfrecord'.format(i)
+        tfrecord_path = tfrecord_dir + 'chineseOCR_vgg19_{}.tfrecord'.format(i)
         tf_writer = tf.python_io.TFRecordWriter(tfrecord_path)
         for file in tf_record_image_list:
             label = according_file_path_return_label(file)
@@ -57,5 +58,5 @@ def generate_tfrecords(file_path_list, tf_record_image_number):
 
 
 if __name__ == "__main__":
-    file_list = read_file_to_list("/Users/taoming/data/chineseOCR")
-    generate_tfrecords(file_list,10000)
+    file_list = read_file_to_list("/home/taoming/data/chineseOCR/testSample")
+    generate_tfrecords(file_list,10000,'/home/taoming/data/chineseOCR/testSampleTfrecords/')

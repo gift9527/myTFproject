@@ -2,9 +2,9 @@ import os
 import random
 import shutil
 
-test_dir = "/Users/taoming/data/OCRTest"
-train_dir = "/Users/taoming/data/OCRTrain"
-origin_dir = "/Users/taoming/data/chineseOCR"
+test_dir = "/home/taoming/data/chineseOCR/testSample"
+train_dir = "/home/taoming/data/chineseOCR/trainSample"
+origin_dir = "/home/taoming/data/chineseOCR/sample"
 
 
 

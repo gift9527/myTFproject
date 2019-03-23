@@ -208,7 +208,7 @@ def get_random(s, e):
     return my_random.randint(s, e)
 
 
-def test_image_font():
+def tes_image_font():
     size = 20
     # font = ImageFont.truetype('/Library/Fonts/华文仿宋.ttf', size)
     # font = ImageFont.truetype('train/fireflysung.ttf', size)
@@ -342,7 +342,7 @@ def bmp_to_png():
         cv2.imwrite(v, color_img)
 
 
-def test_erosion():
+def tes_erosion():
     sample_dir = "test/samples"
     font_file = 'train/font/fireflysung.ttf'
     # font_file='train/font/方正粗圆简体.ttf'
@@ -380,7 +380,7 @@ def test_erosion():
     cv2.waitKey()
 
 
-def test_erosion2():
+def tes_erosion2():
     sample_dir = "test/samples"
     # font_file='train/font/fireflysung.ttf'
     font_file = 'train/font/方正粗圆简体.ttf'
@@ -731,19 +731,17 @@ def create_char_sample_train3():
 
 
 def create_char_sample_train4():
-    #sample_dir = 'chinese'
-    sample_dir = '/Users/taoming/data/chineseOCR'
+    sample_dir = '/home/taoming/data/chineseOCR/sample'
     char_file = 'hanzi_dict_reverse.txt'
     hanzi_dict = load_char_table(char_file)
 
-    #font_dir = 'font'
-    font_dir = '/Users/taoming/data/font'
-    # files_name = ['方正书宋_GBK.TTF', '方正姚体简体.ttf', '方正黑体_GBK.TTF',
-    #               '方正宋黑_GBK.ttf', '方正楷体简体.ttf', '方正水柱_GBK.ttf',
-    #               '方正粗圆简体.ttf', '方正粗宋_GBK.ttf', '方正细倩_GBK.ttf',
-    #               '方正细珊瑚_GBK.ttf', '方正细圆_GBK.TTF', '方正细等线_GBK.ttf',
-    #               '方正行楷_GBK.ttf', '方正铁筋隶书简体.ttf', '方正魏碑_GBK.ttf']
-    files_name = ['方正书宋_GBK.TTF']
+    font_dir = '/home/taoming/data/font'
+    files_name = ['方正书宋_GBK.TTF', '方正姚体简体.ttf', '方正黑体_GBK.TTF',
+                '方正宋黑_GBK.ttf', '方正楷体简体.ttf', '方正水柱_GBK.ttf',
+                 '方正粗圆简体.ttf', '方正粗宋_GBK.ttf', '方正细倩_GBK.ttf',
+                 '方正细珊瑚_GBK.ttf', '方正细圆_GBK.TTF', '方正细等线_GBK.ttf',
+                '方正行楷_GBK.ttf', '方正铁筋隶书简体.ttf', '方正魏碑_GBK.ttf']
+
 
     font_files = [os.path.join(font_dir, f) for f in files_name if True]
 
@@ -787,7 +785,7 @@ def create_char_sample_train4():
                 cv2.imwrite(file_name, image)
 
 
-def test_every_font():
+def tes_every_font():
     sample_dir = 'train/samples5'
     char_file = 'train/hanzi_table.txt'
     hanzi_dict = load_char_table(char_file)
